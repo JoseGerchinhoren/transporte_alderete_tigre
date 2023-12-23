@@ -1,0 +1,115 @@
+Posición, Puntos de inspeccion, Estado, Repuesto a cambiar, Cantidad
+
+Posición 1, Inspección parte baja tren delantero:
+Bujes de barra delantera
+Hojas de elásticos delanteros (fisuras)
+Bieletas de barra delantera (ajuste)
+Bujes de elásticos delanteros (desgaste)
+
+Posición 2, Dirección:
+Extr, de barra larga y larga (juego)
+Crucetas de columna de dirección 
+Estado de caja derribadora (juego perdidas)
+
+Posición 3, Frenos parte delantera:
+Espesor de cintas de freno Delantero
+Indicar la medida actual de la cinta Delantera
+ Indicar la medida próxima de la cinta Delantera
+Estado de la campana Delantera Izquierda
+Estado de la campana Delantera Derecha
+Estado de cajas reguladoras delantera izquierda (engrase /sujeción)
+Estado de cajas reguladoras delantera Derecha (engrase/ sujeción) 
+Pulmón de freno Delantero Izquierdo (perdida)
+Pulmón de freno Delantero Derecho (perdida)
+Protector de chapa para cinta de freno Delantero Izquierdo 
+Protector de chapa para cinta de frena Delantero Derecho
+
+Posición 4, Puente de cardan:
+Primer tramo estado
+Segundo tramo estado
+Tercer tramo estado
+
+Posición 5, Inspección parta baje tren trasero:
+Bujes de barra trasera
+Hojas de elásticos traseros (fisuras)
+Bieletas de barra trasera (ajuste)
+Bujes de elásticos traseros (desgaste)
+
+Posición 6, Frenos parte trasera:
+Espesor de cintas de freno trasera
+Indicar la medida actual de la cinta trasera
+Indicar la medida próxima de la cinta trasera
+Estado de la campana trasera Izquierda
+Estado de la campana trasera Derecha
+Estado de cajas reguladoras trasera Izquierda (engrase/ sujeción)
+Estado de cajas reguladoras trasera Derecha (engrase/ sujeción)
+Pulmón de freno trasero Izquierdo (perdida)
+Pulmón de freno trasero Derecho (perdida)
+Protector de chapa para cinta de frena trasero Izquierdo 
+Protector de chapa para cinta de freno trasero Derecho
+Estado del freno de mano
+
+Posición 7, Fluidos (estanqueidad=perdidas):
+Estanqueidad de líquido hidráulico
+Estanqueidad de líquido refrigerante
+Estanqueidad aceite motor
+Estanqueidad aceite caja
+Estanqueidad aceite diferencial
+Estanqueidad líquido treno embrague(buses), freno y embrague (Sprinter)
+Posición 8, Carrocería:
+Estado en general en cuanto a oxidación en laterales
+Estado general en cuanto a roturas en teleras (estructurales)
+
+Posición 9, Conductos y cableados:
+Estados de soportes de sujeción
+Mangueras de aire precintadas
+Mangueras de combustible
+Conexiones de aire en válvulas
+Conexiones de aire en pulmones
+Conexiones de cañerías de gasoil en racord's
+Estado de ramales de cableados
+Estado de grampas sujetadoras de ramales de cableado y mangueras
+
+Posición 10, Inspección básica sobre la unidas:
+Estado de correas (inspección visual)
+Ruidos en general al poner en marcha
+Niveles de fluidos
+Liquido de freno
+Liquido hidráulico
+Aceite motor
+Control de luces exteriores
+Control luces Interiores
+Control de estado de asientos (visión general)
+Estado de pisos (visión general)
+
+Posición 11, Tablero de instrumentos:
+Estado de indicadores por reloj
+Estado de indicadores por luz
+Estado de indicadores sonoros
+Estado de comandos llave general de luces y botoneras
+Función de bocina y limpiaparabrisas
+
+Posición 12, Neumáticos:
+Estado de dibujo neumáticos izquierdo delantero
+Estado de dibujo neumáticos derecho delantero
+Estado general neumáticos izquierdo delantero
+Estado general neumáticos derecho delantero
+Estado casco externo neumático izquierdo delantero
+Estado casco externo neumático derecho delantero
+Estado de dibujo neumáticos izquierdo trasero
+Estado de dibujo neumáticos derecho trasero
+Estado general neumáticos izquierdo trasero
+Estado general neumáticos derecho trasero
+Estado casco externo neumático izquierdo trasero
+Estado casco externo neumático derecho trasero
+
+Posición 13, Inspección general:
+Estado de la batería
+Estado de los bornes
+¿El coche tiene cortacorriente?
+Estado del arranque
+Estado del alternador
+Estado de correas
+Estado del filtro de aire
+Engrase en puntos de lubricación
+Control de limpia parabrisas

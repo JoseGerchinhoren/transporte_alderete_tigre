@@ -18,7 +18,6 @@ def guardar_en_s3(data):
 
     try:
         # Descarga el archivo CSV desde el bucket de S3
-        s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key, region_name=region_name)
         s3.download_file(bucket_name, csv_filename, csv_filename)
 
         # Carga los datos existentes desde el archivo CSV
@@ -39,7 +38,18 @@ def guardar_en_s3(data):
         # Concatena el DataFrame al DataFrame existente
         df_total = pd.concat([df_total, df_nuevo], ignore_index=True)
 
+        # Reorganiza las columnas según el nuevo orden deseado
+        column_order = ['idRevision', 'coche', 'fecha', 'hora', 'user_name']
+        
+        # Obtén las columnas relacionadas con los puntos de inspección
+        columnas_puntos = [col for col in df_total.columns if col.startswith('estado_') or col.startswith('repuestos_') or col.startswith('cantidad_')]
+        
+        # Organiza todas las columnas
+        column_order += sorted(columnas_puntos)
+        df_total = df_total[column_order]
+
         # Guarda el DataFrame actualizado en el archivo CSV y sube el archivo a S3
+        df_total.to_csv(csv_filename, index=False)
         s3.upload_file(csv_filename, bucket_name, csv_filename)
 
         # Establece una bandera para indicar que el archivo en S3 ahora existe
@@ -51,7 +61,6 @@ def guardar_en_s3(data):
 def cargar_desde_s3():
     try:
         # Descarga el archivo CSV desde el bucket de S3
-        s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key, region_name=region_name)
         s3.download_file(bucket_name, csv_filename, csv_filename)
 
         # Carga los datos desde el archivo CSV
@@ -76,6 +85,7 @@ def page_info_general():
             'hora': hora
         }
         guardar_en_s3(data)
+        st.session_state.info_general = data  # Almacena los datos en la variable de sesión
         st.session_state.page = 'posicion_1'
         st.rerun()
 
@@ -104,9 +114,13 @@ def page_posicion_1():
     ]
 
     # Iterar sobre los puntos de inspección
+    data = st.session_state.info_general.copy() if 'info_general' in st.session_state else {}
     for punto in puntos_inspeccion_posicion_1:
         opciones_estado = ['Bueno', 'Regular', 'Malo']
         estado, repuesto, cantidad = generar_interfaz_punto_inspeccion(punto, opciones_estado)
+        data[f'estado_{punto}'] = estado
+        data[f'repuestos_{punto}'] = repuesto
+        data[f'cantidad_{punto}'] = cantidad
 
     col1, col2 = st.columns(2)
 
@@ -118,12 +132,8 @@ def page_posicion_1():
         st.session_state.page = 'info_general'
         st.rerun()
     elif next_button_clicked:
-        data = {
-            'estado_bujes': estado,
-            'repuestos_bujes': repuesto,
-            'cantidad_bujes': cantidad
-        }
         guardar_en_s3(data)
+        st.session_state.posicion_1 = data  # Almacena los datos en la variable de sesión
         st.session_state.page = 'posicion_2'
         st.rerun()
 
@@ -137,9 +147,13 @@ def page_posicion_2():
     ]
 
     # Iterar sobre los puntos de inspección de la Posición 2
+    data = st.session_state.posicion_1.copy() if 'posicion_1' in st.session_state else {}
     for punto in puntos_inspeccion_posicion_2:
         opciones_estado = ['Bueno', 'Regular', 'Malo']
         estado, repuesto, cantidad = generar_interfaz_punto_inspeccion(punto, opciones_estado)
+        data[f'estado_{punto}'] = estado
+        data[f'repuestos_{punto}'] = repuesto
+        data[f'cantidad_{punto}'] = cantidad
 
     col1, col2 = st.columns(2)
 
@@ -151,15 +165,11 @@ def page_posicion_2():
         st.session_state.page = 'posicion_1'
         st.rerun()
     elif next_button_clicked:
-        data = {
-            'estado_direccion': estado,
-            'repuestos_direccion': repuesto,
-            'cantidad_direccion': cantidad
-        }
-        # Cambiamos la página a la siguiente (puedes ajustar el nombre según sea necesario)
         guardar_en_s3(data)
-        st.session_state.page = 'posicion_3'
-        st.rerun()
+        # Puedes continuar con más páginas de la misma manera
+        # st.session_state.posicion_2 = data  # Almacena los datos en la variable de sesión
+        # st.session_state.page = 'posicion_3'
+        # st.rerun()
 
 def main():
     # Inicializa las variables de sesión si no existen
