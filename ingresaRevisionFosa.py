@@ -32,20 +32,24 @@ def guardar_en_s3(data):
         # Agrega el nombre del usuario al nuevo dato
         data['user_name'] = user_name
 
-        # Crea un DataFrame con el nuevo dato
-        df_nuevo = pd.DataFrame([data])
-
-        # Concatena el DataFrame al DataFrame existente
-        df_total = pd.concat([df_total, df_nuevo], ignore_index=True)
+        # Actualiza el DataFrame total con los nuevos datos
+        if not df_total.empty:
+            for key, value in data.items():
+                if key not in df_total.columns:
+                    df_total[key] = None  # Agrega la columna si no existe
+                df_total.at[df_total.index[-1], key] = value
+        else:
+            df_total = pd.DataFrame([data])
 
         # Reorganiza las columnas según el nuevo orden deseado
         column_order = ['idRevision', 'coche', 'fecha', 'hora', 'user_name']
-        
-        # Obtén las columnas relacionadas con los puntos de inspección
-        columnas_puntos = [col for col in df_total.columns if col.startswith('estado_') or col.startswith('repuestos_') or col.startswith('cantidad_')]
-        
+
+        # Itera sobre las columnas relacionadas con los puntos de inspección y agréguelas al orden
+        for col in df_total.columns:
+            if col not in column_order:
+                column_order.append(col)
+
         # Organiza todas las columnas
-        column_order += sorted(columnas_puntos)
         df_total = df_total[column_order]
 
         # Guarda el DataFrame actualizado en el archivo CSV y sube el archivo a S3
