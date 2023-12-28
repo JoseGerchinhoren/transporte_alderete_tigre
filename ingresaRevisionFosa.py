@@ -1,7 +1,8 @@
 import streamlit as st
 import boto3
-from botocore.exceptions import NoCredentialsError
 import pandas as pd
+import io
+from botocore.exceptions import NoCredentialsError
 from config import cargar_configuracion
 from horario import obtener_fecha_argentina
 
@@ -13,102 +14,46 @@ s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=
 
 csv_filename = "revisiones.csv"
 
-def guardar_en_s3(data):
-    user_name = st.session_state.user_nombre_apellido
-
+def guardar_en_s3(data, filename):
     try:
-        # Descarga el archivo CSV desde el bucket de S3
-        s3.download_file(bucket_name, csv_filename, csv_filename)
+        # Leer el archivo CSV desde S3
+        response = s3.get_object(Bucket=bucket_name, Key=filename)
+        df_total = pd.read_csv(io.BytesIO(response['Body'].read()))
 
-        # Carga los datos existentes desde el archivo CSV
-        df_total = pd.read_csv(csv_filename) if st.session_state.get('s3_file_exists') else pd.DataFrame()
+        # Verificar si el DataFrame está vacío
+        if df_total.empty:
+            # Si está vacío, inicializamos la columna 'id' y las demás
+            df_total = pd.DataFrame(columns=['idRevison', 'coche', 'inicio_revision', 'fin_revision'])
 
-        # Obtiene el último idRevision si hay registros, o establece 0 si no hay registros
-        ultimo_id = df_total['idRevision'].max() if not df_total.empty else 0
+        # Agregar las columnas faltantes si no existen
+        for col in data.keys():
+            if col not in df_total.columns:
+                df_total[col] = ''
 
-        # Agrega un idRevision único al nuevo dato
-        data['idRevision'] = int(ultimo_id) + 1
+        # Agrega un id único al nuevo dato
+        data['idRevison'] = df_total['idRevison'].max() + 1 if not df_total.empty else 1
 
-        # Agrega el nombre del usuario al nuevo dato
-        data['user_name'] = user_name
+        # Crea un DataFrame con el nuevo dato
+        new_data_df = pd.DataFrame([data])
 
-        # Almacena el idRevision generado en la variable de sesión
-        st.session_state.last_id_revision = data['idRevision']
+        # Concatena el nuevo DataFrame con los datos existentes
+        df_total = pd.concat([df_total, new_data_df], ignore_index=True)
 
-        # Actualiza el DataFrame total con los nuevos datos
-        if not df_total.empty:
-            for key, value in data.items():
-                if key not in df_total.columns:
-                    df_total[key] = None  # Agrega la columna si no existe
-                df_total.at[df_total.index[-1], key] = value
-        else:
-            df_total = pd.DataFrame([data])
+        # Guardar el DataFrame actualizado en S3
+        with io.StringIO() as csv_buffer:
+            df_total.to_csv(csv_buffer, index=False)
+            s3.put_object(Body=csv_buffer.getvalue(), Bucket=bucket_name, Key=filename)
 
-        # Reorganiza las columnas según el nuevo orden deseado
-        column_order = ['idRevision', 'coche', 'fecha', 'hora', 'user_name']
+        # Guardar localmente también
+        df_total.to_csv(filename, index=False)
 
-        # Itera sobre las columnas relacionadas con los puntos de inspección y agréguelas al orden
-        for col in df_total.columns:
-            if col not in column_order:
-                column_order.append(col)
+        st.success("Información guardada exitosamente en S3 y localmente!")
 
-        # Organiza todas las columnas
-        df_total = df_total[column_order]
+    except NoCredentialsError:
+        st.error("Credenciales de AWS no disponibles. Verifica la configuración.")
 
-        # Guarda el DataFrame actualizado en el archivo CSV y sube el archivo a S3
-        df_total.to_csv(csv_filename, index=False)
-        s3.upload_file(csv_filename, bucket_name, csv_filename)
-
-        # Establece una bandera para indicar que el archivo en S3 ahora existe
-        st.session_state.s3_file_exists = True
-
-    except NoCredentialsError as e:
-        st.error(f'Error de credenciales: {e}')
-
-def eliminar_registro_csv():
-    try:
-        # Descarga el archivo CSV desde el bucket de S3
-        s3.download_file(bucket_name, csv_filename, csv_filename)
-
-        # Carga los datos existentes desde el archivo CSV
-        df_total = pd.read_csv(csv_filename)
-
-        # Elimina el registro con el idRevision correspondiente
-        df_total = df_total[df_total['idRevision'] != st.session_state.last_id_revision]
-
-        # Guarda el DataFrame actualizado en el archivo CSV y sube el archivo a S3
-        df_total.to_csv(csv_filename, index=False)
-        s3.upload_file(csv_filename, bucket_name, csv_filename)
-
-        # Establece la bandera para indicar que el archivo en S3 ahora existe
-        st.session_state.s3_file_exists = True
-
-        # Elimina la variable de sesión que almacena el último idRevision
-        del st.session_state.last_id_revision
-
-    except NoCredentialsError as e:
-        st.error(f'Error de credenciales: {e}')
-
-def cargar_desde_s3():
-    try:
-        # Descarga el archivo CSV desde el bucket de S3
-        s3.download_file(bucket_name, csv_filename, csv_filename)
-
-        # Carga los datos desde el archivo CSV
-        df = pd.read_csv(csv_filename)
-        return df.to_dict()
-
-    except NoCredentialsError as e:
-        st.error(f'Error de credenciales: {e}')
-        return None
-
-def cancelar_revision():
-    # Elimina el registro generado en el archivo CSV
-    eliminar_registro_csv()
-    # Reiniciar las variables de sesión
-    st.session_state.info_general = {}
-    st.session_state.page = 'info_general'
-    st.success("Revisión cancelada exitosamente!")
+    except Exception as e:
+        st.error(f"Error al guardar la información: {e}")
 
 def generar_interfaz_punto_inspeccion(nombre_punto, opciones_estado):
     st.subheader(nombre_punto)
@@ -124,92 +69,61 @@ def generar_interfaz_punto_inspeccion(nombre_punto, opciones_estado):
 
     return estado, repuesto, cantidad
 
-def page_info_general():
+def main():
     st.title("Ingresar Nueva Revisión en Fosa")
+
+    # Verificar si estamos en la primera ejecución
+    if 'data' not in st.session_state:
+        st.session_state.data = {'coche': '', 'inicio_revision': '', 'fin_revision': ''}
 
     coche = st.text_input("Coche:", key="coche_input")
     if coche == "":
         st.warning("Por favor, ingresa el nombre del coche.")
         return
 
-    if st.button("Comenzar Revisión de Fosa"):
-        fecha_hora_actual = obtener_fecha_argentina()
-        fecha = fecha_hora_actual.strftime("%Y-%m-%d")
-        hora = fecha_hora_actual.strftime("%H:%M")
+    if st.button("Comenzar Revisión"):
+        fecha_hora_inicio = obtener_fecha_argentina()
+        inicio_revision = fecha_hora_inicio.strftime("%Y-%m-%d %H:%M")
 
-        st.subheader("Información del Coche:")
-        st.write(f"Coche: {coche}")
-        st.write(f"Fecha: {fecha}")
-        st.write(f"Hora: {hora}")
-        st.write(f"Usuario: {st.session_state.user_nombre_apellido}")
+        # Almacenar en la sesión el inicio de la revisión y el coche
+        st.session_state.data['inicio_revision'] = inicio_revision
+        st.session_state.data['coche'] = coche
+
+        st.subheader("Información de comienzo de revisión:")
+        st.write(f"Coche: {st.session_state.data['coche']}")
+        st.write(f"Inicio de revisión: {st.session_state.data['inicio_revision']}")
         st.write("")
 
-        data = {'coche': coche, 'fecha': fecha, 'hora': hora, 'user_name': st.session_state.user_nombre_apellido}
-        guardar_en_s3(data)
-        st.session_state.info_general = data  # Almacena los datos en la variable de sesión
-        st.session_state.page = 'posiciones'
-        st.rerun()
+        posiciones = {
+            "Posición 1, Inspección parte baja tren delantero": [
+                "Bujes de barra delantera",
+                "Hojas de elásticos delanteros (fisuras)",
+                "Bieletas de barra delantera (ajuste)",
+                "Bujes de elásticos delanteros (desgaste)"
+            ],
+            "Posición 2, Dirección": [
+                "Extr, de barra larga y larga (juego)",
+                "Crucetas de columna de dirección",
+                "Estado de caja derribadora (juego perdidas)"
+            ],
+            # Puedes agregar más posiciones aquí
+        }
 
-def page_posiciones():
-    st.title("Inspección de Fosa")
+        for posicion, puntos_inspeccion_posicion in posiciones.items():
+            st.header(posicion)
+            for punto in puntos_inspeccion_posicion:
+                opciones_estado = ['Bueno', 'Regular', 'Malo']
+                estado, repuesto, cantidad = generar_interfaz_punto_inspeccion(punto, opciones_estado)
+                st.session_state.data[f'estado_{punto}'] = estado
+                st.session_state.data[f'repuestos_{punto}'] = repuesto
+                st.session_state.data[f'cantidad_{punto}'] = cantidad
 
-    # Mostrar información del coche
-    info_general = st.session_state.info_general
-    if info_general:
-        st.subheader("Información de comienzo de revision:")
-        st.write(f"Coche: {info_general['coche']}")
-        st.write(f"Fecha: {info_general['fecha']}")
-        st.write(f"Hora: {info_general['hora']}")
-        st.write(f"Usuario: {info_general['user_name']}")
-        st.write("")
-
-    posiciones = {
-        "Posición 1, Inspección parte baja tren delantero": [
-            "Bujes de barra delantera",
-            "Hojas de elásticos delanteros (fisuras)",
-            "Bieletas de barra delantera (ajuste)",
-            "Bujes de elásticos delanteros (desgaste)"
-        ],
-        "Posición 2, Dirección": [
-            "Extr, de barra larga y larga (juego)",
-            "Crucetas de columna de dirección",
-            "Estado de caja derribadora (juego perdidas)"
-        ],
-        # Puedes agregar más posiciones aquí
-    }
-
-    # Iterar sobre las posiciones y sus puntos de inspección
-    data = st.session_state.info_general.copy() if 'info_general' in st.session_state else {}
-    for posicion, puntos_inspeccion_posicion in posiciones.items():
-        st.subheader(posicion)
-        for punto in puntos_inspeccion_posicion:
-            opciones_estado = ['Bueno', 'Regular', 'Malo']
-            estado, repuesto, cantidad = generar_interfaz_punto_inspeccion(punto, opciones_estado)
-            data[f'estado_{punto}'] = estado
-            data[f'repuestos_{punto}'] = repuesto
-            data[f'cantidad_{punto}'] = cantidad
-
-    if st.button("Guardar Información"):
-        guardar_en_s3(data)
-        st.success("Información guardada exitosamente!")
-
-    if st.button("Cancelar Revisión de Fosa"):
-        cancelar_revision()
-
-def main():
-    # Inicializa las variables de sesión si no existen
-    if 'info_general' not in st.session_state:
-        st.session_state.info_general = {}
-    if 'page' not in st.session_state:
-        st.session_state.page = 'info_general'  # Inicializa 'page' aquí
-
-    if 's3_file_exists' not in st.session_state:
-        st.session_state.s3_file_exists = False
-
-    if st.session_state.page == 'info_general':
-        page_info_general()
-    elif st.session_state.page == 'posiciones':
-        page_posiciones()
+        if st.button("Guardar Información"):
+            # Guardar el tiempo de finalización cuando se presiona el botón "Guardar Información"
+            fecha_hora_fin = obtener_fecha_argentina()
+            fin_revision = fecha_hora_fin.strftime("%Y-%m-%d %H:%M")
+            st.session_state.data['fin_revision'] = fin_revision
+            guardar_en_s3(st.session_state.data, csv_filename)
 
 if __name__ == "__main__":
     main()
