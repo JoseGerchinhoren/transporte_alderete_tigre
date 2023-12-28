@@ -4,7 +4,7 @@ import pandas as pd
 from config import cargar_configuracion
 from horario import obtener_fecha_argentina
 
-from ingresaRevisionFosa import main as revisionFosa
+from nuevaRevisionFosa import main as revisionFosa
 from visualizaRevisionFosa import main as visualizaRevisionFosa
 
 
