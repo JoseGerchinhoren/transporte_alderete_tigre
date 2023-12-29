@@ -26,8 +26,6 @@ def cargar_desde_s3():
     except NoCredentialsError as e:
         st.error(f'Error de credenciales: {e}')
         return None
-    
-import streamlit as st
 
 # Visualizar los registros en una tabla
 def visualizar_registros(df):
