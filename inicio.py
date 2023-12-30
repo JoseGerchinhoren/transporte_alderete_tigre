@@ -2,11 +2,8 @@ import streamlit as st
 import boto3
 import pandas as pd
 from config import cargar_configuracion
-from horario import obtener_fecha_argentina
-
-from nuevaRevisionFosa import main as revisionFosa
+from ingresaRevisionFosa import main as revisionFosa
 from visualizaRevisionFosa import main as visualizaRevisionFosa
-
 
 # Obtener credenciales
 aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion()
@@ -74,8 +71,8 @@ def main():
         selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa"])
         if selected_option == "Nueva Revision en Fosa":
             revisionFosa()
-        if selected_option == "Visualizar Revisiones en Fosa":
-            visualizaRevisionFosa()
+        # if selected_option == "Visualizar Revisiones en Fosa":
+        #     visualizaRevisionFosa()
         if selected_option == "Inicio":
             texto_inicio()
 
