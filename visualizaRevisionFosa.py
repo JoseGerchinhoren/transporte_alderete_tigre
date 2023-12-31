@@ -1,82 +1,65 @@
 import streamlit as st
-import pandas as pd
 import boto3
-from botocore.exceptions import NoCredentialsError
+import io
+import pandas as pd
 from config import cargar_configuracion
-from horario import obtener_fecha_argentina
 
 # Obtener credenciales
 aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion()
 
-# Conecta a S3
+# Conectar a S3
 s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key, region_name=region_name)
 
-csv_filename = "revisiones.csv"
+def visualizar_revisiones_en_fosa():
+    st.title("Visualizar Revisiones en Fosa")
 
-# Cargar el archivo CSV desde S3
-def cargar_desde_s3():
-    try:
-        # Descargar el archivo CSV desde el bucket de S3
-        s3.download_file(bucket_name, csv_filename, csv_filename)
+    # Cargar el archivo revisiones.csv desde S3
+    s3_csv_key = 'revisiones.csv'
+    csv_obj = s3.get_object(Bucket=bucket_name, Key=s3_csv_key)
+    revisiones_df = pd.read_csv(io.BytesIO(csv_obj['Body'].read()))
 
-        # Cargar los datos desde el archivo CSV
-        df = pd.read_csv(csv_filename)
-        return df
+    # Filtrar las columnas deseadas
+    columnas_deseadas = ['idRevision', 'coche', 'fechaHoraInicial', 'fechaHoraFinal']
 
-    except NoCredentialsError as e:
-        st.error(f'Error de credenciales: {e}')
-        return None
+    revisiones_df_columnas_deseadas = revisiones_df[columnas_deseadas]
 
-# Visualizar los registros en una tabla
-def visualizar_registros(df):
-    st.subheader('Registros de Revisiones')
-    # Mostrar solo las columnas deseadas
-    columns_to_display = ['idRevision', 'coche', 'fecha', 'hora', 'user_name']
-    st.dataframe(df[columns_to_display].set_index('idRevision'))
+    # Ordenar el DataFrame por la columna 'idRevision' de forma descendente
+    revisiones_df_columnas_deseadas = revisiones_df_columnas_deseadas.sort_values(by='idRevision', ascending=False)
 
-# Mostrar detalles de una revisión específica
-def mostrar_detalles_por_id(df, id_revision):
-    st.subheader(f'Detalles de la revisión con idRevision: {id_revision}')
+    # Convertir la columna "idRevision" a tipo cadena y eliminar las comas
+    revisiones_df_columnas_deseadas['idRevision'] = revisiones_df_columnas_deseadas['idRevision'].astype(str).str.replace(',', '')
 
-    # Filtrar el DataFrame por el idRevision especificado
-    detalles = df[df['idRevision'] == id_revision]
+    # Convertir la columna "idRevision" a tipo cadena y eliminar las comas
+    revisiones_df['idRevision'] = revisiones_df['idRevision'].astype(str).str.replace(',', '')
 
-    # Iterar sobre las posiciones de inspección
-    for position in ['Posición 1', 'Posición 2', 'Posición 3', 'Otra posición según sea necesario']:
-        st.title(position)
+    # Mostrar la tabla de revisiones en fosa
+    st.dataframe(revisiones_df_columnas_deseadas)
 
-        # Mostrar detalles para cada posición
-        if position == 'Posición 1':
-            st.write(f"**Estado de Bujes de barra delantera:** {detalles['estado_bujes'].values[0]}")
-            st.write(f"**Repuestos para Bujes de barra delantera:** {detalles['repuestos_bujes'].values[0]}")
-            st.write(f"**Cantidad para Bujes de barra delantera:** {detalles['cantidad_bujes'].values[0]}")
-            # Agregar más detalles según sea necesario para la Posición 1
-        elif position == 'Posición 2':
-            st.write(f"**Estado de Otra cosa para Posición 2:** {detalles['estado_otra_posicion2'].values[0]}")
-            st.write(f"**Repuestos para Otra cosa para Posición 2:** {detalles['repuestos_otra_posicion2'].values[0]}")
-            st.write(f"**Cantidad para Otra cosa para Posición 2:** {detalles['cantidad_otra_posicion2'].values[0]}")
-            # Agregar más detalles según sea necesario para la Posición 2
-        elif position == 'Posición 3':
-            st.write(f"**Estado de Otra cosa para Posición 3:** {detalles['estado_otra_posicion3'].values[0]}")
-            st.write(f"**Repuestos para Otra cosa para Posición 3:** {detalles['repuestos_otra_posicion3'].values[0]}")
-            st.write(f"**Cantidad para Otra cosa para Posición 3:** {detalles['cantidad_otra_posicion3'].values[0]}")
-            # Agregar más detalles según sea necesario para la Posición 3
-        # Agregar más posiciones según sea necesario
+    # Agregar un widget de búsqueda por idRevision
+    id_revision_buscado = st.text_input("Buscar por idRevision:")
+    
+    if id_revision_buscado:
+        # Filtrar el DataFrame por el idRevision ingresado
+        filtro_id_revision = revisiones_df['idRevision'] == id_revision_buscado
+        resultado_busqueda = revisiones_df[filtro_id_revision]
 
-def main():
-    # Cargar datos desde S3
-    df = cargar_desde_s3()
+        # Mostrar los resultados de la búsqueda en formato de texto
+        st.header("Resultado de la búsqueda:")
 
-    if df is not None:
-        # Visualizar registros en una tabla
-        visualizar_registros(df)
+        for index, row in resultado_busqueda.iterrows():
+            st.subheader(f"Id de Revision: {row['idRevision']}")
+            st.subheader(f"Coche: {row['coche']}")
+            st.subheader(f"Fecha Inicial: {row['fechaHoraInicial']}")
+            st.subheader(f"Fecha Final: {row['fechaHoraFinal']}")
 
-        # Obtener el idRevision desde el usuario
-        id_revision = st.text_input('Ingrese el idRevision para ver detalles:')
+            # Obtener y mostrar la información adicional
+            posiciones_columnas = [col for col in revisiones_df.columns if col.startswith('estado_')]
+            for posicion_columna in posiciones_columnas:
+                estado = row[posicion_columna]
+                repuestos_columna = f'repuestos_{posicion_columna[7:]}'
+                cantidad_columna = f'cantidad_{posicion_columna[7:]}'
 
-        # Mostrar detalles si se ingresó un idRevision válido
-        if st.button('Mostrar detalles') and id_revision:
-            mostrar_detalles_por_id(df, int(id_revision))
+                st.subheader(f"{posicion_columna[7:]}: {estado} ({row[repuestos_columna]}, {row[cantidad_columna]})")
 
 if __name__ == "__main__":
-    main()
+    visualizar_revisiones_en_fosa()

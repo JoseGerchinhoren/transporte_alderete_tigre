@@ -62,8 +62,8 @@ def guardar_revision_en_s3(data, filename):
             df_total.to_csv(csv_buffer, index=False)
             s3.put_object(Body=csv_buffer.getvalue(), Bucket=bucket_name, Key=filename)
 
-        # Guardar localmente también
-        df_total.to_csv("revisiones.csv", index=False)
+        # # Guardar localmente también
+        # df_total.to_csv("revisiones.csv", index=False)
 
         st.success("Información guardada exitosamente en S3!")
 
@@ -83,8 +83,6 @@ def guardar_revision(coche, fecha_hora_inicial, fecha_hora_final, datos):
 
         # Guardar la revisión en S3
         guardar_revision_en_s3(data, 'revisiones.csv')
-
-        st.success("Información guardada exitosamente en S3 y localmente!")
 
     except Exception as e:
         st.error(f"Error al guardar la información: {e}")
