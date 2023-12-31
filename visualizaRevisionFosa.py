@@ -130,7 +130,6 @@ def visualizar_revisiones_en_fosa():
     ],
 }
     
-    
     st.title("Visualizar Revisiones en Fosa")
 
     # Cargar el archivo revisiones.csv desde S3
@@ -148,6 +147,9 @@ def visualizar_revisiones_en_fosa():
     # Convertir la columna "idRevision" a tipo cadena y eliminar las comas
     revisiones_df_columnas_deseadas['idRevision'] = revisiones_df_columnas_deseadas['idRevision'].astype(str).str.replace(',', '')
     revisiones_df['idRevision'] = revisiones_df['idRevision'].astype(str).str.replace(',', '')
+    
+    # Muestra el dataframe de revisiones en fosa
+    st.dataframe(revisiones_df_columnas_deseadas)
 
     # Agregar un widget de búsqueda por idRevision
     id_revision_buscado = st.text_input("Buscar por idRevision:")
@@ -174,10 +176,6 @@ def visualizar_revisiones_en_fosa():
                     repuestos_columna = f'repuestos_{columna}'
                     cantidad_columna = f'cantidad_{columna}'
                     st.write(f"  {columna}: {estado} ({row[repuestos_columna]}, {row[cantidad_columna]})")
-
-    else:
-        # Mostrar la tabla de revisiones en fosa si no se ha buscado un idRevision
-        st.dataframe(revisiones_df_columnas_deseadas)
 
 if __name__ == "__main__":
     visualizar_revisiones_en_fosa()
