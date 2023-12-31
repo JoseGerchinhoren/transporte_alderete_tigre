@@ -11,6 +11,126 @@ aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion(
 s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key, region_name=region_name)
 
 def visualizar_revisiones_en_fosa():
+
+    posiciones = {
+    "Posición 1, Inspección parte baja tren delantero": [
+        "Bujes de barra delantera",
+        "Hojas de elásticos delanteros (fisuras)",
+        "Bieletas de barra delantera (ajuste)",
+        "Bujes de elásticos delanteros (desgaste)"
+    ],
+    "Posición 2, Dirección": [
+        "Extr, de barra larga y larga (juego)",
+        "Crucetas de columna de dirección",
+        "Estado de caja derribadora (juego perdidas)"
+    ],
+    "Posición 3, Frenos parte delantera": [
+        "Espesor de cintas de freno Delantero",
+        "Indicar la medida actual de la cinta Delantera",
+        "Indicar la medida próxima de la cinta Delantera",
+        "Estado de la campana Delantera Izquierda",
+        "Estado de la campana Delantera Derecha",
+        "Estado de cajas reguladoras delantera izquierda (engrase /sujeción)",
+        "Estado de cajas reguladoras delantera Derecha (engrase/ sujeción)",
+        "Pulmón de freno Delantero Izquierdo (perdida)",
+        "Pulmón de freno Delantero Derecho (perdida)",
+        "Protector de chapa para cinta de freno Delantero Izquierdo",
+        "Protector de chapa para cinta de freno Delantero Derecho"
+    ],
+    "Posición 4, Puente de cardan": [
+        "Primer tramo estado",
+        "Segundo tramo estado",
+        "Tercer tramo estado"
+    ],
+    "Posición 5, Inspección parta baje tren trasero": [
+        "Bujes de barra trasera",
+        "Hojas de elásticos traseros (fisuras)",
+        "Bieletas de barra trasera (ajuste)",
+        "Bujes de elásticos traseros (desgaste)"
+    ],
+    "Posición 6, Frenos parte trasera": [
+        "Espesor de cintas de freno trasera",
+        "Indicar la medida actual de la cinta trasera",
+        "Indicar la medida próxima de la cinta trasera",
+        "Estado de la campana trasera Izquierda",
+        "Estado de la campana trasera Derecha",
+        "Estado de cajas reguladoras trasera Izquierda (engrase/ sujeción)",
+        "Estado de cajas reguladoras trasera Derecha (engrase/ sujeción)",
+        "Pulmón de freno trasero Izquierdo (perdida)",
+        "Pulmón de freno trasero Derecho (perdida)",
+        "Protector de chapa para cinta de freno trasero Izquierdo",
+        "Protector de chapa para cinta de freno trasero Derecho",
+        "Estado del freno de mano"
+    ],
+    "Posición 7, Fluidos (estanqueidad=perdidas)": [
+        "Estanqueidad de líquido hidráulico",
+        "Estanqueidad de líquido refrigerante",
+        "Estanqueidad aceite motor",
+        "Estanqueidad aceite caja",
+        "Estanqueidad aceite diferencial",
+        "Estanqueidad líquido treno embrague(buses), freno y embrague (Sprinter)"
+    ],
+    "Posición 8, Carrocería": [
+        "Estado en general en cuanto a oxidación en laterales",
+        "Estado general en cuanto a roturas en teleras (estructurales)"
+    ],
+    "Posición 9, Conductos y cableados": [
+        "Estados de soportes de sujeción",
+        "Mangueras de aire precintadas",
+        "Mangueras de combustible",
+        "Conexiones de aire en válvulas",
+        "Conexiones de aire en pulmones",
+        "Conexiones de cañerías de gasoil en racord's",
+        "Estado de ramales de cableados",
+        "Estado de grampas sujetadoras de ramales de cableado y mangueras"
+    ],
+    "Posición 10, Inspección básica sobre la unión": [
+        "Estado de correas (inspección visual)",
+        "Ruidos en general al poner en marcha",
+        "Niveles de fluidos",
+        "Liquido de freno",
+        "Liquido hidráulico",
+        "Aceite motor",
+        "Control de luces exteriores",
+        "Control luces Interiores",
+        "Control de estado de asientos (visión general)",
+        "Estado de pisos (visión general)"
+    ],
+    "Posición 11, Tablero de instrumentos": [
+        "Estado de indicadores por reloj",
+        "Estado de indicadores por luz",
+        "Estado de indicadores sonoros",
+        "Estado de comandos llave general de luces y botoneras",
+        "Función de bocina y limpiaparabrisas"
+    ],
+    "Posición 12, Neumáticos": [
+        "Estado de dibujo neumáticos izquierdo delantero",
+        "Estado de dibujo neumáticos derecho delantero",
+        "Estado general neumáticos izquierdo delantero",
+        "Estado general neumáticos derecho delantero",
+        "Estado casco externo neumático izquierdo delantero",
+        "Estado casco externo neumático derecho delantero",
+        "Estado de dibujo neumáticos izquierdo trasero",
+        "Estado de dibujo neumáticos derecho trasero",
+        "Estado general neumáticos izquierdo trasero",
+        "Estado general neumáticos derecho trasero",
+        "Estado casco externo neumático izquierdo trasero",
+        "Estado casco externo neumático derecho trasero"
+    ],
+    "Posición 13, Inspección general": [
+        "Estado de la batería",
+        "Estado de los bornes",
+        "¿El coche tiene cortacorriente?",
+        "Estado del arranque",
+        "Estado del alternador",
+        "Estado de correas",
+        "Estado del filtro de aire",
+        "Engrase en puntos de lubricación",
+        "Control de limpia parabrisas"
+    ],
+}
+    
+    
     st.title("Visualizar Revisiones en Fosa")
 
     # Cargar el archivo revisiones.csv desde S3
@@ -20,7 +140,6 @@ def visualizar_revisiones_en_fosa():
 
     # Filtrar las columnas deseadas
     columnas_deseadas = ['idRevision', 'coche', 'fechaHoraInicial', 'fechaHoraFinal']
-
     revisiones_df_columnas_deseadas = revisiones_df[columnas_deseadas]
 
     # Ordenar el DataFrame por la columna 'idRevision' de forma descendente
@@ -28,16 +147,11 @@ def visualizar_revisiones_en_fosa():
 
     # Convertir la columna "idRevision" a tipo cadena y eliminar las comas
     revisiones_df_columnas_deseadas['idRevision'] = revisiones_df_columnas_deseadas['idRevision'].astype(str).str.replace(',', '')
-
-    # Convertir la columna "idRevision" a tipo cadena y eliminar las comas
     revisiones_df['idRevision'] = revisiones_df['idRevision'].astype(str).str.replace(',', '')
-
-    # Mostrar la tabla de revisiones en fosa
-    st.dataframe(revisiones_df_columnas_deseadas)
 
     # Agregar un widget de búsqueda por idRevision
     id_revision_buscado = st.text_input("Buscar por idRevision:")
-    
+
     if id_revision_buscado:
         # Filtrar el DataFrame por el idRevision ingresado
         filtro_id_revision = revisiones_df['idRevision'] == id_revision_buscado
@@ -52,14 +166,18 @@ def visualizar_revisiones_en_fosa():
             st.subheader(f"Fecha Inicial: {row['fechaHoraInicial']}")
             st.subheader(f"Fecha Final: {row['fechaHoraFinal']}")
 
-            # Obtener y mostrar la información adicional
-            posiciones_columnas = [col for col in revisiones_df.columns if col.startswith('estado_')]
-            for posicion_columna in posiciones_columnas:
-                estado = row[posicion_columna]
-                repuestos_columna = f'repuestos_{posicion_columna[7:]}'
-                cantidad_columna = f'cantidad_{posicion_columna[7:]}'
+            # Obtener y mostrar la información adicional utilizando el diccionario de posiciones
+            for posicion, columnas in posiciones.items():
+                st.subheader(posicion)
+                for columna in columnas:
+                    estado = row[f'estado_{columna}']
+                    repuestos_columna = f'repuestos_{columna}'
+                    cantidad_columna = f'cantidad_{columna}'
+                    st.write(f"  {columna}: {estado} ({row[repuestos_columna]}, {row[cantidad_columna]})")
 
-                st.subheader(f"{posicion_columna[7:]}: {estado} ({row[repuestos_columna]}, {row[cantidad_columna]})")
+    else:
+        # Mostrar la tabla de revisiones en fosa si no se ha buscado un idRevision
+        st.dataframe(revisiones_df_columnas_deseadas)
 
 if __name__ == "__main__":
     visualizar_revisiones_en_fosa()
