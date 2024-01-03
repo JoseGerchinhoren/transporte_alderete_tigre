@@ -139,7 +139,7 @@ def visualizar_revisiones_en_fosa():
     revisiones_df = pd.read_csv(io.BytesIO(csv_obj['Body'].read()))
 
     # Filtrar las columnas deseadas
-    columnas_deseadas = ['idRevision', 'coche', 'fechaHoraInicial', 'fechaHoraFinal', 'usuario', 'estado']
+    columnas_deseadas = ['idRevision', 'coche', 'fechaHoraInicial', 'fechaHoraFinal', 'usuario', 'estadoRevision']
     revisiones_df_columnas_deseadas = revisiones_df[columnas_deseadas]
 
     # Ordenar el DataFrame por la columna 'idRevision' de forma descendente
@@ -149,15 +149,15 @@ def visualizar_revisiones_en_fosa():
     revisiones_df_columnas_deseadas['idRevision'] = revisiones_df_columnas_deseadas['idRevision'].astype(str).str.replace(',', '')
     revisiones_df['idRevision'] = revisiones_df['idRevision'].astype(str).str.replace(',', '')
 
-    # Agregar un widget de selección de estado
-    estado_seleccionado = st.selectbox("Filtrar por Estado:", ['activo', 'cancelado'])
+    # Agregar un filtro por estado
+    estados = revisiones_df_columnas_deseadas['estadoRevision'].unique()
+    filtro_estado = st.selectbox("Filtrar por Estado:", ["Todos"] + list(estados))
 
-    # Filtrar el DataFrame por el estado seleccionado
-    filtro_estado = revisiones_df_columnas_deseadas['estado'] == estado_seleccionado
-    revisiones_df_filtrado = revisiones_df_columnas_deseadas[filtro_estado]
+    if filtro_estado != "Todos":
+        revisiones_df_columnas_deseadas = revisiones_df_columnas_deseadas[revisiones_df_columnas_deseadas['estadoRevision'] == filtro_estado]
 
     # Muestra el dataframe de revisiones en fosa
-    st.dataframe(revisiones_df_filtrado)
+    st.dataframe(revisiones_df_columnas_deseadas)
 
     st.subheader("Detalles de Revisiones en Fosa")
 
@@ -177,7 +177,8 @@ def visualizar_revisiones_en_fosa():
             st.subheader(f"Coche: {row['coche']}")
             st.subheader(f"Fecha Inicial: {row['fechaHoraInicial']}")
             st.subheader(f"Fecha Final: {row['fechaHoraFinal']}")
-            st.subheader(f"Usuario que cargo la revision en fosa: {row['usuario']}")
+            st.subheader(f"Usuario que cargo la revisión: {row['usuario']}")
+            st.subheader(f"Estado de la Revisión: {row['estadoRevision']}")
 
             # Obtener y mostrar la información adicional utilizando el diccionario de posiciones
             for posicion, columnas in posiciones.items():
