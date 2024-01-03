@@ -1,9 +1,12 @@
 import streamlit as st
 import boto3
 import pandas as pd
+
 from config import cargar_configuracion
 from ingresaRevisionFosa import main as revisionFosa
 from visualizaRevisionFosa import visualizar_revisiones_en_fosa as visualizaRevisionFosa
+from ingresaUsuarios import ingresa_usuario
+from visualizaUsuarios import main as visualiza_usuarios
 
 # Obtener credenciales
 aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion()
@@ -67,14 +70,27 @@ def main():
     if logged_in:
         st.sidebar.title("Menú")
 
-        # if user_rol == "admin":
-        selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa"])
-        if selected_option == "Nueva Revision en Fosa":
-            revisionFosa()
-        if selected_option == "Visualizar Revisiones en Fosa":
-            visualizaRevisionFosa()
-        if selected_option == "Inicio":
-            texto_inicio()
+        if user_rol == "admin":
+            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa", "Nuevo Usuario", "Visualiza Usuarios"])
+            if selected_option == "Nuevo Usuario":
+                ingresa_usuario()
+            if selected_option == "Visualiza Usuarios":
+                visualiza_usuarios()
+            if selected_option == "Nueva Revision en Fosa":
+                revisionFosa()
+            if selected_option == "Visualizar Revisiones en Fosa":
+                visualizaRevisionFosa()
+            if selected_option == "Inicio":
+                texto_inicio()
+
+        else:
+            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa"])
+            if selected_option == "Nueva Revision en Fosa":
+                revisionFosa()
+            if selected_option == "Visualizar Revisiones en Fosa":
+                visualizaRevisionFosa()
+            if selected_option == "Inicio":
+                texto_inicio()
 
         st.write(f"Usuario: {user_nombre_apellido}")
 
