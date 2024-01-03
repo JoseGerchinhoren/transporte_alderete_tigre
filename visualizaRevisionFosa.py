@@ -3,6 +3,7 @@ import boto3
 import io
 import pandas as pd
 from config import cargar_configuracion
+import datetime
 
 # Obtener credenciales
 aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion()
@@ -138,7 +139,7 @@ def visualizar_revisiones_en_fosa():
     revisiones_df = pd.read_csv(io.BytesIO(csv_obj['Body'].read()))
 
     # Filtrar las columnas deseadas
-    columnas_deseadas = ['idRevision', 'coche', 'fechaHoraInicial', 'fechaHoraFinal']
+    columnas_deseadas = ['idRevision', 'coche', 'fechaHoraInicial', 'fechaHoraFinal', 'usuario', 'estado']
     revisiones_df_columnas_deseadas = revisiones_df[columnas_deseadas]
 
     # Ordenar el DataFrame por la columna 'idRevision' de forma descendente
@@ -147,14 +148,23 @@ def visualizar_revisiones_en_fosa():
     # Convertir la columna "idRevision" a tipo cadena y eliminar las comas
     revisiones_df_columnas_deseadas['idRevision'] = revisiones_df_columnas_deseadas['idRevision'].astype(str).str.replace(',', '')
     revisiones_df['idRevision'] = revisiones_df['idRevision'].astype(str).str.replace(',', '')
-    
+
+    # Agregar un widget de selección de estado
+    estado_seleccionado = st.selectbox("Filtrar por Estado:", ['activo', 'cancelado'])
+
+    # Filtrar el DataFrame por el estado seleccionado
+    filtro_estado = revisiones_df_columnas_deseadas['estado'] == estado_seleccionado
+    revisiones_df_filtrado = revisiones_df_columnas_deseadas[filtro_estado]
+
     # Muestra el dataframe de revisiones en fosa
-    st.dataframe(revisiones_df_columnas_deseadas)
+    st.dataframe(revisiones_df_filtrado)
+
+    st.subheader("Detalles de Revisiones en Fosa")
 
     # Agregar un widget de búsqueda por idRevision
-    id_revision_buscado = st.text_input("Buscar por idRevision:")
+    id_revision_buscado = st.text_input("Ingrese idRevision para ver detalles:")
 
-    if id_revision_buscado:
+    if st.button("Ver Detalles"):
         # Filtrar el DataFrame por el idRevision ingresado
         filtro_id_revision = revisiones_df['idRevision'] == id_revision_buscado
         resultado_busqueda = revisiones_df[filtro_id_revision]
@@ -167,6 +177,7 @@ def visualizar_revisiones_en_fosa():
             st.subheader(f"Coche: {row['coche']}")
             st.subheader(f"Fecha Inicial: {row['fechaHoraInicial']}")
             st.subheader(f"Fecha Final: {row['fechaHoraFinal']}")
+            st.subheader(f"Usuario que cargo la revision en fosa: {row['usuario']}")
 
             # Obtener y mostrar la información adicional utilizando el diccionario de posiciones
             for posicion, columnas in posiciones.items():
@@ -176,6 +187,23 @@ def visualizar_revisiones_en_fosa():
                     repuestos_columna = f'repuestos_{columna}'
                     cantidad_columna = f'cantidad_{columna}'
                     st.write(f"  {columna}: {estado} ({row[repuestos_columna]}, {row[cantidad_columna]})")
+
+    st.subheader("Editar Estado de Revision en Fosa")
+
+    # Agregar un widget de búsqueda por idRevision
+    id_revision_editar_estado = st.text_input("Ingrese idRevision para editar:")
+
+    # Botón para editar el estado de la revisión
+    if st.button("Editar Estado"):
+        # Validar si el usuario tiene permisos de administrador (debes tener una lógica para determinar esto)
+        es_administrador = True  # Reemplaza esto con tu lógica de verificación de administrador
+
+        # Verificar si la hora actual es antes de las 24:00 para usuarios no administradores
+        if not es_administrador and datetime.now().hour >= 24:
+            st.warning("No puedes editar el estado después de las 24:00 como usuario no administrador.")
+        else:
+            nuevo_estado = st.selectbox("Nuevo Estado:", ['activo', 'cancelado', 'otro_estado'])
+            # Aquí debes agregar la lógica para actualizar el estado en el DataFrame y en tu fuente de datos
 
 if __name__ == "__main__":
     visualizar_revisiones_en_fosa()

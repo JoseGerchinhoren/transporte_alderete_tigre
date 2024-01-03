@@ -44,7 +44,9 @@ def guardar_revision_en_s3(data, filename):
         nueva_revision = {'idRevision': id_revision,
                           'coche': data['coche'],
                           'fechaHoraInicial': data['fechaHoraInicial'],
-                          'fechaHoraFinal': data['fechaHoraFinal']}
+                          'fechaHoraFinal': data['fechaHoraFinal'],
+                          'estado': 'activo',
+                          'usuario': data['usuario']}
 
         for punto, (estado, repuesto, cantidad) in data['datos'].items():
             nueva_revision[f'estado_{punto}'] = estado
@@ -73,12 +75,13 @@ def guardar_revision_en_s3(data, filename):
     except Exception as e:
         st.error(f"Error al guardar la información en S3: {e}")
 
-def guardar_revision(coche, fecha_hora_inicial, fecha_hora_final, datos):
+def guardar_revision(coche, fecha_hora_inicial, fecha_hora_final, usuario, datos):
     try:
         # Crear un diccionario con la información de la revisión
         data = {'coche': coche,
                 'fechaHoraInicial': fecha_hora_inicial.strftime('%Y-%m-%d %H:%M:%S'),
                 'fechaHoraFinal': fecha_hora_final.strftime('%Y-%m-%d %H:%M:%S'),
+                'usuario': usuario,
                 'datos': datos}
 
         # Guardar la revisión en S3
@@ -90,6 +93,8 @@ def guardar_revision(coche, fecha_hora_inicial, fecha_hora_final, datos):
 def main():
     # Configuración inicial
     st.title("Ingresar Nueva Revisión en Fosa")
+
+    usuario = st.session_state.user_nombre_apellido
 
     # Ingreso de Coche
     coche = st.text_input("Coche:")
@@ -255,7 +260,7 @@ def main():
             st.success(f"Revisión finalizada a las {fecha_hora_final.strftime('%Y-%m-%d %H:%M:%S')} para el coche {coche}")
 
             # Guardar la información en el archivo CSV
-            guardar_revision(coche, st.session_state.fecha_hora_inicial, fecha_hora_final, datos_revision)
+            guardar_revision(coche, st.session_state.fecha_hora_inicial, fecha_hora_final, usuario, datos_revision)
             # Limpiar la variable fecha_hora_inicial después de guardar la revisión
             st.session_state.fecha_hora_inicial = None
 
