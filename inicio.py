@@ -7,7 +7,6 @@ from ingresaRevisionFosa import main as revisionFosa
 from visualizaRevisionFosa import visualizar_revisiones_en_fosa as visualizaRevisionFosa
 from ingresaUsuarios import ingresa_usuario
 from visualizaUsuarios import main as visualiza_usuarios
-from continuaRevisionFosa import main as continuarRevisionFosa
 
 # Obtener credenciales
 aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion()
@@ -72,15 +71,13 @@ def main():
         st.sidebar.title("Menú")
 
         if user_rol == "admin":
-            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Continuar Revision en Fosa", "Visualizar Revisiones en Fosa", "Nuevo Usuario", "Visualiza Usuarios"])
+            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa", "Nuevo Usuario", "Visualiza Usuarios"])
             if selected_option == "Nuevo Usuario":
                 ingresa_usuario()
             if selected_option == "Visualiza Usuarios":
                 visualiza_usuarios()
             if selected_option == "Nueva Revision en Fosa":
                 revisionFosa()
-            if selected_option == "Continuar Revision en Fosa":
-                continuarRevisionFosa()
             if selected_option == "Visualizar Revisiones en Fosa":
                 visualizaRevisionFosa()
             if selected_option == "Inicio":

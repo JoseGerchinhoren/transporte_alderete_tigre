@@ -139,7 +139,7 @@ def visualizar_revisiones_en_fosa():
     revisiones_df = pd.read_csv(io.BytesIO(csv_obj['Body'].read()))
 
     # Filtrar las columnas deseadas
-    columnas_deseadas = ['idRevision', 'coche', 'fechaHoraInicial', 'fechaHoraFinal', 'usuario', 'estadoRevision']
+    columnas_deseadas = ['idRevision', 'coche', 'fechaHoraInicial', 'fechaHoraFinal', 'usuario', 'estado']
     revisiones_df_columnas_deseadas = revisiones_df[columnas_deseadas]
 
     # Ordenar el DataFrame por la columna 'idRevision' de forma descendente
@@ -149,15 +149,19 @@ def visualizar_revisiones_en_fosa():
     revisiones_df_columnas_deseadas['idRevision'] = revisiones_df_columnas_deseadas['idRevision'].astype(str).str.replace(',', '')
     revisiones_df['idRevision'] = revisiones_df['idRevision'].astype(str).str.replace(',', '')
 
-    # Agregar un filtro por estado
-    estados = revisiones_df_columnas_deseadas['estadoRevision'].unique()
-    filtro_estado = st.selectbox("Filtrar por Estado:", ["Todos"] + list(estados))
+    # Agregar un widget de selección de estado
+    estado_seleccionado = st.selectbox("Filtrar por Estado:", ['Todos', 'activo', 'cancelado'])
 
-    if filtro_estado != "Todos":
-        revisiones_df_columnas_deseadas = revisiones_df_columnas_deseadas[revisiones_df_columnas_deseadas['estadoRevision'] == filtro_estado]
+    if estado_seleccionado == 'Todos':
+        st.dataframe(revisiones_df_columnas_deseadas)
 
-    # Muestra el dataframe de revisiones en fosa
-    st.dataframe(revisiones_df_columnas_deseadas)
+    else:
+        # Filtrar el DataFrame por el estado seleccionado
+        filtro_estado = revisiones_df_columnas_deseadas['estado'] == estado_seleccionado
+        revisiones_df_filtrado = revisiones_df_columnas_deseadas[filtro_estado]
+
+        # Muestra el dataframe de revisiones en fosa
+        st.dataframe(revisiones_df_filtrado)
 
     st.subheader("Detalles de Revisiones en Fosa")
 
@@ -169,25 +173,31 @@ def visualizar_revisiones_en_fosa():
         filtro_id_revision = revisiones_df['idRevision'] == id_revision_buscado
         resultado_busqueda = revisiones_df[filtro_id_revision]
 
-        # Mostrar los resultados de la búsqueda en formato de texto
-        st.header("Resultado de la búsqueda:")
-
+        # Mostrar los resultados de la búsqueda en formato de DataFrames
         for index, row in resultado_busqueda.iterrows():
             st.subheader(f"Id de Revision: {row['idRevision']}")
             st.subheader(f"Coche: {row['coche']}")
             st.subheader(f"Fecha Inicial: {row['fechaHoraInicial']}")
             st.subheader(f"Fecha Final: {row['fechaHoraFinal']}")
-            st.subheader(f"Usuario que cargo la revisión: {row['usuario']}")
-            st.subheader(f"Estado de la Revisión: {row['estadoRevision']}")
+            st.subheader(f"Usuario que cargo la revision en fosa: {row['usuario']}")
 
             # Obtener y mostrar la información adicional utilizando el diccionario de posiciones
             for posicion, columnas in posiciones.items():
                 st.subheader(posicion)
+                
+                # Crear un DataFrame para la posición actual
+                df_posicion = pd.DataFrame(columns=['Nombre de Punto', f'Estado', f'Repuestos', f'Cantidad'])
+                
                 for columna in columnas:
                     estado = row[f'estado_{columna}']
                     repuestos_columna = f'repuestos_{columna}'
                     cantidad_columna = f'cantidad_{columna}'
-                    st.write(f"  {columna}: {estado} ({row[repuestos_columna]}, {row[cantidad_columna]})")
+                    
+                    # Agregar fila al DataFrame de la posición actual
+                    df_posicion.loc[len(df_posicion)] = [columna, estado, row[repuestos_columna], row[cantidad_columna]]
+                
+                # Mostrar DataFrame de la posición actual después de aplicar el filtro
+                st.dataframe(df_posicion)
 
     st.subheader("Editar Estado de Revision en Fosa")
 

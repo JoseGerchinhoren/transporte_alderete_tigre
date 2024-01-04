@@ -45,7 +45,7 @@ def guardar_revision_en_s3(data, filename):
                           'coche': data['coche'],
                           'fechaHoraInicial': data['fechaHoraInicial'],
                           'fechaHoraFinal': data['fechaHoraFinal'],
-                          'estadoRevision': data['estadoRevision'],
+                          'estado': 'activo',
                           'usuario': data['usuario']}
 
         for punto, (estado, repuesto, cantidad) in data['datos'].items():
@@ -65,7 +65,7 @@ def guardar_revision_en_s3(data, filename):
             s3.put_object(Body=csv_buffer.getvalue(), Bucket=bucket_name, Key=filename)
 
         # # Guardar localmente también
-        # df_total.to_csv("revisiones.csv", index=False)
+        df_total.to_csv("revisiones.csv", index=False)
 
         st.success("Información guardada exitosamente en S3!")
 
@@ -75,14 +75,13 @@ def guardar_revision_en_s3(data, filename):
     except Exception as e:
         st.error(f"Error al guardar la información en S3: {e}")
 
-def guardar_revision(coche, fecha_hora_inicial, fecha_hora_final, usuario, estadoRevision, datos):
+def guardar_revision(coche, fecha_hora_inicial, fecha_hora_final, usuario, datos):
     try:
         # Crear un diccionario con la información de la revisión
         data = {'coche': coche,
                 'fechaHoraInicial': fecha_hora_inicial.strftime('%Y-%m-%d %H:%M:%S'),
                 'fechaHoraFinal': fecha_hora_final.strftime('%Y-%m-%d %H:%M:%S'),
                 'usuario': usuario,
-                'estadoRevision': estadoRevision,
                 'datos': datos}
 
         # Guardar la revisión en S3
@@ -244,8 +243,6 @@ def main():
         # Almacenar los datos de la revisión en un diccionario
         datos_revision = {}
 
-        estadoRevision = "En Progreso"
-
         # Loop a través de las posiciones
         for nombre_posicion, puntos_inspeccion in posiciones.items():
             st.header(nombre_posicion)
@@ -255,26 +252,15 @@ def main():
                 opciones_estado = ['Bueno', 'Regular', 'Malo']
                 estado, repuesto, cantidad = generar_interfaz_punto_inspeccion(nombre_punto, opciones_estado)
                 datos_revision[nombre_punto] = (estado, repuesto, cantidad)
-            
-            if st.button(f"Guardar Revisión hasta {nombre_posicion}"):
-                # Obtener la fecha y hora final de la revisión
-                fecha_hora_final = None
-                # Guardar la información en el archivo CSV
-                guardar_revision(coche, st.session_state.fecha_hora_inicial, fecha_hora_final, usuario, estadoRevision, datos_revision)
-                st.success(f"Revisión guardada a las {fecha_hora_final.strftime('%Y-%m-%d %H:%M:%S')} para el coche {coche}")
-
-        # Cambio de estado para finalizar
-        st.title("Para concluir la revisión, cambie el estado a 'Finalizado'")
-        # Selecciona el estado actual del elemento (puede ser "En Progreso", "Finalizado" o "Cancelado")
-        estadoRevision = st.selectbox("Estado:", ["En Progreso", "Finalizado", "Cancelado"])
 
         # Botón para guardar la revisión
         if st.button("Guardar Revisión"):
             # Obtener la fecha y hora final de la revisión
             fecha_hora_final = datetime.now()
-            # Guardar la información en el archivo CSV
-            guardar_revision(coche, st.session_state.fecha_hora_inicial, fecha_hora_final, usuario, estadoRevision, datos_revision)
             st.success(f"Revisión finalizada a las {fecha_hora_final.strftime('%Y-%m-%d %H:%M:%S')} para el coche {coche}")
+
+            # Guardar la información en el archivo CSV
+            guardar_revision(coche, st.session_state.fecha_hora_inicial, fecha_hora_final, usuario, datos_revision)
             # Limpiar la variable fecha_hora_inicial después de guardar la revisión
             st.session_state.fecha_hora_inicial = None
 
