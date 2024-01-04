@@ -65,7 +65,7 @@ def guardar_revision_en_s3(data, filename):
             s3.put_object(Body=csv_buffer.getvalue(), Bucket=bucket_name, Key=filename)
 
         # # Guardar localmente también
-        df_total.to_csv("revisiones.csv", index=False)
+        # df_total.to_csv("revisiones.csv", index=False)
 
         st.success("Información guardada exitosamente en S3!")
 

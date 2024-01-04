@@ -11,9 +11,8 @@ aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion(
 # Conectar a S3
 s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key, region_name=region_name)
 
-def visualizar_revisiones_en_fosa():
 
-    posiciones = {
+posiciones = {
     "Posición 1, Inspección parte baja tren delantero": [
         "Bujes de barra delantera",
         "Hojas de elásticos delanteros (fisuras)",
@@ -130,7 +129,9 @@ def visualizar_revisiones_en_fosa():
         "Control de limpia parabrisas"
     ],
 }
-    
+
+def visualizar_revisiones_en_fosa():
+
     st.title("Visualizar Revisiones en Fosa")
 
     # Cargar el archivo revisiones.csv desde S3
@@ -163,43 +164,21 @@ def visualizar_revisiones_en_fosa():
         # Muestra el dataframe de revisiones en fosa
         st.dataframe(revisiones_df_filtrado)
 
-    st.subheader("Detalles de Revisiones en Fosa")
+    st.header("Detalles de Revisiones en Fosa")
 
     # Agregar un widget de búsqueda por idRevision
     id_revision_buscado = st.text_input("Ingrese idRevision para ver detalles:")
 
-    if st.button("Ver Detalles"):
+    if id_revision_buscado:
         # Filtrar el DataFrame por el idRevision ingresado
         filtro_id_revision = revisiones_df['idRevision'] == id_revision_buscado
         resultado_busqueda = revisiones_df[filtro_id_revision]
 
         # Mostrar los resultados de la búsqueda en formato de DataFrames
         for index, row in resultado_busqueda.iterrows():
-            st.subheader(f"Id de Revision: {row['idRevision']}")
-            st.subheader(f"Coche: {row['coche']}")
-            st.subheader(f"Fecha Inicial: {row['fechaHoraInicial']}")
-            st.subheader(f"Fecha Final: {row['fechaHoraFinal']}")
-            st.subheader(f"Usuario que cargo la revision en fosa: {row['usuario']}")
+            mostrar_detalles_revision(row, estado_seleccionado)
 
-            # Obtener y mostrar la información adicional utilizando el diccionario de posiciones
-            for posicion, columnas in posiciones.items():
-                st.subheader(posicion)
-                
-                # Crear un DataFrame para la posición actual
-                df_posicion = pd.DataFrame(columns=['Nombre de Punto', f'Estado', f'Repuestos', f'Cantidad'])
-                
-                for columna in columnas:
-                    estado = row[f'estado_{columna}']
-                    repuestos_columna = f'repuestos_{columna}'
-                    cantidad_columna = f'cantidad_{columna}'
-                    
-                    # Agregar fila al DataFrame de la posición actual
-                    df_posicion.loc[len(df_posicion)] = [columna, estado, row[repuestos_columna], row[cantidad_columna]]
-                
-                # Mostrar DataFrame de la posición actual después de aplicar el filtro
-                st.dataframe(df_posicion)
-
-    st.subheader("Editar Estado de Revision en Fosa")
+    st.header("Editar Estado de Revision en Fosa")
 
     # Agregar un widget de búsqueda por idRevision
     id_revision_editar_estado = st.text_input("Ingrese idRevision para editar:")
@@ -215,6 +194,43 @@ def visualizar_revisiones_en_fosa():
         else:
             nuevo_estado = st.selectbox("Nuevo Estado:", ['activo', 'cancelado', 'otro_estado'])
             # Aquí debes agregar la lógica para actualizar el estado en el DataFrame y en tu fuente de datos
+
+def mostrar_detalles_revision(row, estado_seleccionado):
+    st.header(f"Detalles de la revisión")
+    st.subheader(f"ID Revisión: {row['idRevision']}")
+    st.subheader(f"Coche: {row['coche']}")
+    st.subheader(f"Fecha Inicial: {row['fechaHoraInicial']}")
+    st.subheader(f"Fecha Final: {row['fechaHoraFinal']}")
+    st.subheader(f"Usuario que cargó la revisión en fosa: {row['usuario']}")
+
+    st.header('Detalle de Posiciones')
+    estado_seleccionado = st.selectbox("Filtrar por Estado:", ['Todos', 'Bueno', 'Regular', 'Malo'])
+
+    # Obtener y mostrar la información adicional utilizando el diccionario de posiciones
+    for posicion, columnas in posiciones.items():
+        st.subheader(posicion)
+
+        # Crear un DataFrame para la posición actual
+        df_posicion = pd.DataFrame(columns=['Nombre de Punto', f'Estado', f'Repuestos', f'Cantidad'])
+
+        for columna in columnas:
+            estado = row[f'estado_{columna}']
+            repuestos_columna = f'repuestos_{columna}'
+            cantidad_columna = f'cantidad_{columna}'
+
+            # Agregar fila al DataFrame de la posición actual
+            df_posicion.loc[len(df_posicion)] = [columna, estado, row[repuestos_columna], row[cantidad_columna]]
+
+        if estado_seleccionado == 'Todos':
+            st.dataframe(df_posicion)
+
+        else:
+            # Filtrar el DataFrame por el estado seleccionado
+            filtro_estado = df_posicion['Estado'] == estado_seleccionado
+            df_posicion_filtrado = df_posicion[filtro_estado]
+
+            # Mostrar DataFrame de la posición actual después de aplicar el filtro
+            st.dataframe(df_posicion_filtrado)
 
 if __name__ == "__main__":
     visualizar_revisiones_en_fosa()
