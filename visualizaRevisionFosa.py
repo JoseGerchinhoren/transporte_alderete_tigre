@@ -211,15 +211,16 @@ def mostrar_detalles_revision(row, estado_seleccionado):
         st.subheader(posicion)
 
         # Crear un DataFrame para la posición actual
-        df_posicion = pd.DataFrame(columns=['Nombre de Punto', f'Estado', f'Repuestos', f'Cantidad'])
+        df_posicion = pd.DataFrame(columns=['Nombre de Punto', 'Estado', 'Repuestos', 'Cantidad', 'Dias aprox para cambio'])
 
         for columna in columnas:
             estado = row[f'estado_{columna}']
             repuestos_columna = f'repuestos_{columna}'
             cantidad_columna = f'cantidad_{columna}'
+            dias_cambio = f'dias_cambio_{columna}'
 
             # Agregar fila al DataFrame de la posición actual
-            df_posicion.loc[len(df_posicion)] = [columna, estado, row[repuestos_columna], row[cantidad_columna]]
+            df_posicion.loc[len(df_posicion)] = [columna, estado, row[repuestos_columna], row[cantidad_columna], row[dias_cambio]]
 
         if estado_seleccionado == 'Todos':
             st.dataframe(df_posicion)

@@ -19,14 +19,21 @@ def generar_interfaz_punto_inspeccion(nombre_punto, opciones_estado):
 
     estado = st.selectbox(f"Estado de {nombre_punto}:", opciones_estado)
 
-    if estado in ['Regular', 'Malo']:
+    # Inicializar dias_cambio con un valor predeterminado
+    dias_cambio = 0
+
+    if estado == 'Regular':
+        dias_cambio = st.number_input('Cantidad de días aproximados para el cambio del repuesto:', min_value=0, value=1, step=1)
+        cantidad = 0
+        repuesto = ""
+    elif estado == 'Malo':
         repuesto = st.text_input(f"Repuestos a cambiar para {nombre_punto}:")
-        cantidad = st.number_input(f"Cantidad de repuestos para {nombre_punto}:", min_value=0, value=0, step=1)
+        cantidad = st.number_input(f"Cantidad de repuestos para {nombre_punto}:", min_value=0, value=1, step=1)
     else:
         repuesto = ""
         cantidad = 0
 
-    return estado, repuesto, cantidad
+    return estado, repuesto, cantidad, dias_cambio
 
 def guardar_revision_en_s3(data, filename):
     try:
@@ -48,10 +55,11 @@ def guardar_revision_en_s3(data, filename):
                           'estado': 'activo',
                           'usuario': data['usuario']}
 
-        for punto, (estado, repuesto, cantidad) in data['datos'].items():
+        for punto, (estado, repuesto, cantidad, dias_cambio) in data['datos'].items():
             nueva_revision[f'estado_{punto}'] = estado
             nueva_revision[f'repuestos_{punto}'] = repuesto
             nueva_revision[f'cantidad_{punto}'] = cantidad
+            nueva_revision[f'dias_cambio_{punto}'] = dias_cambio
 
         # Convertir el diccionario en un DataFrame
         nueva_df = pd.DataFrame([nueva_revision])
@@ -64,8 +72,8 @@ def guardar_revision_en_s3(data, filename):
             df_total.to_csv(csv_buffer, index=False)
             s3.put_object(Body=csv_buffer.getvalue(), Bucket=bucket_name, Key=filename)
 
-        # # Guardar localmente también
-        # df_total.to_csv("revisiones.csv", index=False)
+        # Guardar localmente también
+        df_total.to_csv("revisiones.csv", index=False)
 
         st.success("Información guardada exitosamente en S3!")
 
@@ -250,8 +258,8 @@ def main():
             # Loop a través de los puntos de inspección
             for nombre_punto in puntos_inspeccion:
                 opciones_estado = ['Bueno', 'Regular', 'Malo']
-                estado, repuesto, cantidad = generar_interfaz_punto_inspeccion(nombre_punto, opciones_estado)
-                datos_revision[nombre_punto] = (estado, repuesto, cantidad)
+                estado, repuesto, cantidad, dias_cambio = generar_interfaz_punto_inspeccion(nombre_punto, opciones_estado)
+                datos_revision[nombre_punto] = (estado, repuesto, cantidad, dias_cambio)
 
         # Botón para guardar la revisión
         if st.button("Guardar Revisión"):
