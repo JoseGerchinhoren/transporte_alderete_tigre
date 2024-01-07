@@ -7,6 +7,8 @@ from ingresaRevisionFosa import main as revisionFosa
 from visualizaRevisionFosa import visualizar_revisiones_en_fosa as visualizaRevisionFosa
 from ingresaUsuarios import ingresa_usuario
 from visualizaUsuarios import main as visualiza_usuarios
+from ingresaNumeroColectivo import main as ingresaNumeroColectivo
+from visualizaNumerosColectivo import main as visualizaNumerosColectivo
 
 # Obtener credenciales
 aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion()
@@ -71,7 +73,7 @@ def main():
         st.sidebar.title("Menú")
 
         if user_rol == "admin":
-            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa", "Nuevo Usuario", "Visualiza Usuarios"])
+            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa", "Nuevo Numero de Colectivo", "Visualizar Numeros de Colectivos","Nuevo Usuario", "Visualiza Usuarios"])
             if selected_option == "Nuevo Usuario":
                 ingresa_usuario()
             if selected_option == "Visualiza Usuarios":
@@ -80,6 +82,11 @@ def main():
                 revisionFosa()
             if selected_option == "Visualizar Revisiones en Fosa":
                 visualizaRevisionFosa()
+            if selected_option == "Nuevo Numero de Colectivo":
+                ingresaNumeroColectivo()
+            if selected_option == "Visualizar Numeros de Colectivos":
+                visualizaNumerosColectivo()
+
             if selected_option == "Inicio":
                 texto_inicio()
 
@@ -111,18 +118,19 @@ def main():
 
 def texto_inicio():
     st.write(f"Bienvenido, {user_nombre_apellido}! - Empresa de Transporte - Sistema para Revisiones")
-    st.header("""Instrucciones \n * **Menú de la Izquierda**: En la interfaz de la aplicación, observarás un menú en el lado izquierdo de la pantalla. \n * **Despliegue del Menú**: Localiza el icono ">"que indica el despliegue del menú. \n * **Selección de Función**: Haz clic en el despliegue del menú y selecciona la opción correspondiente a la función que deseas utilizar. \n * **Interfaz de Función**: Una vez que hayas seleccionado la función, la interfaz cambiará para mostrar los campos o una tabla con la informacion requerida. \n * **Completar una Función**: Rellena los campos o visualiza la informacion que desees. \n * **Guardar**: Busca el botón "Registrar Venta" para guardar la informacion. \n * **Verificación**: Después de enviar la información, verifica que la nueva venta se haya registrado correctamente con el mensaje de confirmación. \n * **Cerrar Sesión**: Cuando sea necesario busca el boton para cerrar sesión.
+    st.header("""Instrucciones \n * **Menú de la Izquierda**: En la interfaz de la aplicación, observarás un menú en el lado izquierdo de la pantalla. \n * **Despliegue del Menú**: Localiza el icono ">"que indica el despliegue del menú. \n * **Selección de Función**: Haz clic en el despliegue del menú y selecciona la opción correspondiente a la función que deseas utilizar. \n * **Interfaz de Función**: Una vez que hayas seleccionado la función, la interfaz cambiará para mostrar los campos o una tabla con la informacion requerida. \n * **Completar una Función**: Rellena los campos o visualiza la informacion que desees. \n * **Cerrar Sesión**: Cuando sea necesario busca el boton para cerrar sesión.
     """)
     st.header("Funciones")
-    # st.subheader("""Nueva Venta\n * Acceda a la función haciendo clic en 'Nueva Venta'.\n * Ingrese el nombre del producto, el precio en números enteros y seleccione el método de pago.\n * Presione 'Registrar Venta' para guardar la información de la nueva venta.""")
-    # st.subheader("""Visualizar Ventas\n * Acceda a la función haciendo clic en 'Visualizar Ventas'. \n * Por defecto, se mostrarán las ventas del día. \n * Para aplicar filtros adicionales, despliegue el menú de la izquierda. Puede filtrar por rango de fechas o por nombre de usuario. \n * Para editar las ventas ingrese el ID correspondiente y modifique los campos deseados. Luego, presione 'Guardar cambios'. Los usuarios sin permisos de administrador solo pueden editar las vetas del día actual.""")
-    # st.subheader("""Nuevo Pedido \n * Acceda a la función haciendo clic en 'Nuevo Pedido'. \n * Ingrese la descripción del pedido, el nombre del cliente, el contacto y seleccione el estado del pedido. \n * Si el estado es 'Señado', ingrese el monto de la seña.""")
-    # st.subheader("""Visualizar Pedidos \n * Acceda a la función haciendo clic en 'Visualizar Pedidos'. \n * Visualice todos los pedidos y filtre por estado \n * Edite el estado del pedido ingresando el ID correspondiente. \n * Para editar un pedido, solo para administradores, ingrese el ID del pedido, modifique los campos y presione 'Guardar cambios'.""")
-    # st.subheader("""Nuevo Servicio Técnico \n * Acceda a la función haciendo clic en 'Nuevo Servicio Técnico'. \n * Ingrese los detalles del servicio técnico, incluyendo nombre del cliente, contacto, modelo, falla, tipo de desbloqueo y estado. \n * Complete la información requerida y presione 'Registrar Servicio Técnico'.""")
-    # st.subheader("""Visualizar Servicios Técnicos \n * Acceda a la función haciendo clic en 'Visualizar Servicios Técnicos'. \n * Visualice todos los servicios técnicos y filtre por estado. \n * Busque la imagen del patrón de desbloqueo ingresando el ID y presionando 'Ver Imagen del Patrón'. \n * Edite el estado del servicio técnico ingresando el ID correspondiente.""")
-    # if user_rol == "admin":
-    #     st.subheader("""Crear Usuario \n * Haga clic en 'Crear Usuario' para registrar un nuevo usuario, función exclusiva para administradores. \n * Ingrese los datos del usuario, incluyendo nombre, apellido, email, contraseña, fecha de nacimiento, DNI, domicilio y rol (empleado o admin). \n * Presione 'Registrar Usuario' para guardar la información.""")
-    #     st.subheader("""Visualizar Usuarios \n * Haga clic en 'Visualizar Usuarios' para ver la información de los usuarios (sin contraseñas, función exclusiva para administradores). \n * Edite la información del usuario ingresando el ID correspondiente y modifique los campos necesarios. \n * Presione 'Guardar cambios' para confirmar las modificaciones.""")
+    st.subheader("""Ingresar Nueva Revisión en Fosa\n * Ingrese el número de coche en el campo proporcionado.\n * Haga clic en el botón 'Comenzar Revisión' para iniciar la revisión.\n * Complete la inspección de cada posición y punto de inspección.\n * Haga clic en el botón 'Guardar Revisión' al finalizar la inspección.\n * La información se guardará automáticamente en el archivo 'revisiones.csv'.""")
+    st.subheader("""Visualizar Revisiones en Fosa\n * Selecciona el estado deseado en el menú desplegable 'Filtrar por Estado'.\n * Se mostrarán las revisiones filtradas según el estado seleccionado.\n * Si deseas ver detalles de una revisión específica, ingresa el 'idRevision' en el campo correspondiente y presiona Enter.\n * La sección 'Detalles de Revisiones en Fosa' mostrará información detallada sobre la revisión seleccionada.\n * Para editar el estado de una revisión, ingresa el 'idRevision' en el campo 'Ingrese idRevision para editar'.\n * Selecciona el nuevo estado en el menú desplegable 'Nuevo Estado'.\n * Presiona el botón 'Editar Estado' para aplicar los cambios (disponible solo para usuarios administradores antes de las 24:00).\n * La sección 'Detalle de Posiciones' proporciona información detallada sobre cada posición inspeccionada.\n * Utiliza el menú desplegable 'Filtrar por Estado' para mostrar solo los puntos con un estado específico.\n * La información se actualiza dinámicamente según las selecciones realizadas.""")
+
+    if user_rol == "admin":
+        st.subheader("""Agregar Número de Colectivo\n * Ingresa el número de colectivo en el campo proporcionado.\n * Haz clic en 'Guardar Número de Colectivo' para almacenar el número ingresado en el archivo 'numerosColectivos.csv' en AWS S3.\n * Se mostrará un mensaje de éxito si la operación se realiza correctamente.\n * Verifica la configuración de las credenciales de AWS si encuentras problemas al guardar el número de colectivo.\n * El archivo CSV se crea si no existe y se actualiza con cada nuevo número ingresado.""")
+        st.subheader("""Visualizar y Eliminar Números de Colectivo\n * Visualiza los números de colectivo registrados.\n * Si no hay números de colectivo registrados, se mostrará un mensaje de advertencia.\n * Los números de colectivo se obtienen desde el archivo 'numerosColectivos.csv' almacenado en AWS S3.\n * Verifica la configuración de las credenciales de AWS si encuentras problemas al obtener los números de colectivo.""")
+        st.subheader("""Crear Usuario\n * Ingrese los datos del usuario, incluyendo nombre y apellido, email, contraseña, verificación de contraseña, fecha de nacimiento, DNI, domicilio y rol (empleado o admin).\n * Presione 'Registrar Usuario' para guardar la información.""")
+        st.subheader("""Visualizar Usuarios\n * Visualice la información de los usuarios, salvo la contraseña.\n * Edite la información del usuario ingresando el ID correspondiente y modifique los campos necesarios.\n * Presione 'Guardar cambios' para confirmar las modificaciones.""")
+
+
 
 if __name__ == "__main__":
     main()

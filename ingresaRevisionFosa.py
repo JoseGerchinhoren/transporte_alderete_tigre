@@ -104,12 +104,25 @@ def main():
 
     usuario = st.session_state.user_nombre_apellido
 
-    # Ingreso de Coche
-    coche = st.text_input("Coche:")
+    # Cambiar la línea
+    coche = st.text_input("Ingrese número de coche:")
 
-    # Validar que se haya ingresado un nombre o número de coche
+    # Asegurarse de que el campo no esté vacío
     if not coche:
-        st.warning("Por favor, ingrese un nombre o número de coche para continuar.")
+        st.warning("Por favor, ingrese un número de coche para continuar.")
+        return
+
+    # Cargar los números de colectivo desde el archivo
+    try:
+        response_numeros = s3.get_object(Bucket=bucket_name, Key='numerosColectivos.csv')
+        numeros_colectivos = pd.read_csv(io.BytesIO(response_numeros['Body'].read()))['NumeroColectivo'].tolist()
+    except s3.exceptions.NoSuchKey:
+        st.error("Archivo 'numerosColectivos.csv' no encontrado en S3. Verifica la configuración.")
+        return
+
+    # Validar que el número de coche esté en la lista de números de colectivo
+    if int(coche) not in numeros_colectivos:
+        st.warning(f"El número de coche {coche} no está en la lista permitida.")
         return
 
     # Inicializar la variable fecha_hora_inicial solo si no está ya inicializada
