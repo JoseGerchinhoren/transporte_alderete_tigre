@@ -39,7 +39,7 @@ user_rol = st.session_state.get("user_rol", "")
 # Función para verificar las credenciales y obtener el rol del usuario
 def login(username, password):
     try:
-        usuarios_df = buscar_usuarios(username)
+        usuarios_df = buscar_usuarios(username.strip())
 
         if not usuarios_df.empty:
             stored_password = usuarios_df.iloc[0]['contraseña']
@@ -71,7 +71,7 @@ def main():
         st.sidebar.title("Menú")
 
         if user_rol == "admin":
-            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa","Nuevo Usuario", "Visualiza Usuarios"])
+            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Nueva Revision en Fosa", "Visualizar Revisiones en Fosa","Nuevo Usuario", "Visualiza Usuarios"])
             if selected_option == "Nuevo Usuario":
                 ingresa_usuario()
             if selected_option == "Visualiza Usuarios":
@@ -85,7 +85,7 @@ def main():
                 texto_inicio()
 
         else:
-            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa"])
+            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Nueva Revision en Fosa", "Visualizar Revisiones en Fosa"])
             if selected_option == "Nueva Revision en Fosa":
                 revisionFosa()
             if selected_option == "Visualizar Revisiones en Fosa":
