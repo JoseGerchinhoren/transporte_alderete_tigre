@@ -169,6 +169,10 @@ def visualizar_revisiones_en_fosa():
     # Agregar un widget de búsqueda por idRevision
     id_revision_buscado = st.text_input("Ingrese idRevision para ver detalles:")
 
+    # Mensaje de advertencia si no se ingresa el idRevision
+    if not id_revision_buscado:
+        st.warning("Ingrese idRevision y presione 'Enter' para ver detalles.")
+
     if id_revision_buscado:
         # Filtrar el DataFrame por el idRevision ingresado
         filtro_id_revision = revisiones_df['idRevision'] == id_revision_buscado
