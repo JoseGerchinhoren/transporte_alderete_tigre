@@ -198,9 +198,9 @@ def visualizar_revisiones_en_fosa():
 def mostrar_detalles_revision(row, estado_seleccionado):
     st.header(f"Detalles de la revisión")
     st.subheader(f"ID Revisión: {row['idRevision']}")
-    st.subheader(f"Coche: {row['coche']}")
-    st.subheader(f"Fecha Inicial: {row['fechaHoraInicial']}")
-    st.subheader(f"Fecha Final: {row['fechaHoraFinal']}")
+    st.subheader(f"Numero de Coche: {row['coche']}")
+    st.subheader(f"Fecha y Hora Inicial: {row['fechaHoraInicial']}")
+    st.subheader(f"Fecha y Hora Final: {row['fechaHoraFinal']}")
     st.subheader(f"Usuario que cargó la revisión en fosa: {row['usuario']}")
 
     st.header('Detalle de Posiciones')

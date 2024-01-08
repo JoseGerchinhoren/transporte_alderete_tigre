@@ -132,7 +132,7 @@ def main():
 
     # Mostrar la fecha y hora de inicio solo si ya se inició la revisión
     if st.session_state.fecha_hora_inicial:
-        st.subheader(f"Revisión iniciada a las {st.session_state.fecha_hora_inicial.strftime(formato_horario)} para el coche {coche}")
+        # st.subheader(f"Revisión iniciada a las {st.session_state.fecha_hora_inicial.strftime(formato_horario)} para el coche {coche}")
 
         # Definición de posiciones
         posiciones = {
