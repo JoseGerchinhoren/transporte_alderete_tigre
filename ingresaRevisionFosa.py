@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime
+from horario import obtener_fecha_argentina
 import pandas as pd
 from config import cargar_configuracion
 import io
@@ -13,6 +14,15 @@ aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion(
 s3 = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key, region_name=region_name)
 
 csv_filename = "revisiones.csv"
+
+# Inicializar la lista de números de colectivo
+numeros_colectivos = [
+    1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 15, 18, 52,
+    101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+    111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121
+]
+
+formato_horario = '%d/%m/%Y %H:%M'
 
 def generar_interfaz_punto_inspeccion(nombre_punto, opciones_estado):
     st.subheader(nombre_punto)
@@ -72,10 +82,10 @@ def guardar_revision_en_s3(data, filename):
             df_total.to_csv(csv_buffer, index=False)
             s3.put_object(Body=csv_buffer.getvalue(), Bucket=bucket_name, Key=filename)
 
-        # Guardar localmente también
-        df_total.to_csv("revisiones.csv", index=False)
+        # # Guardar localmente también
+        # df_total.to_csv("revisiones.csv", index=False)
 
-        st.success("Información guardada exitosamente en S3!")
+        st.success("Información guardada exitosamente!")
 
     except NoCredentialsError:
         st.error("Credenciales de AWS no disponibles. Verifica la configuración.")
@@ -87,8 +97,8 @@ def guardar_revision(coche, fecha_hora_inicial, fecha_hora_final, usuario, datos
     try:
         # Crear un diccionario con la información de la revisión
         data = {'coche': coche,
-                'fechaHoraInicial': fecha_hora_inicial.strftime('%Y-%m-%d %H:%M:%S'),
-                'fechaHoraFinal': fecha_hora_final.strftime('%Y-%m-%d %H:%M:%S'),
+                'fechaHoraInicial': fecha_hora_inicial.strftime(formato_horario),
+                'fechaHoraFinal': fecha_hora_final.strftime(formato_horario),
                 'usuario': usuario,
                 'datos': datos}
 
@@ -104,43 +114,25 @@ def main():
 
     usuario = st.session_state.user_nombre_apellido
 
-    # Cambiar la línea
-    coche = st.text_input("Ingrese número de coche:")
-
-    # Asegurarse de que el campo no esté vacío
-    if not coche:
-        st.warning("Por favor, ingrese un número de coche para continuar.")
-        return
-
-    # Cargar los números de colectivo desde el archivo
-    try:
-        response_numeros = s3.get_object(Bucket=bucket_name, Key='numerosColectivos.csv')
-        numeros_colectivos = pd.read_csv(io.BytesIO(response_numeros['Body'].read()))['NumeroColectivo'].tolist()
-    except s3.exceptions.NoSuchKey:
-        st.error("Archivo 'numerosColectivos.csv' no encontrado en S3. Verifica la configuración.")
-        return
-
-    # Validar que el número de coche esté en la lista de números de colectivo
-    if int(coche) not in numeros_colectivos:
-        st.warning(f"El número de coche {coche} no está en la lista permitida.")
-        return
+    # Seleccionar el número de coche desde un selectbox
+    coche = st.selectbox("Seleccione número de coche:", numeros_colectivos)
 
     # Inicializar la variable fecha_hora_inicial solo si no está ya inicializada
     if 'fecha_hora_inicial' not in st.session_state:
         st.session_state.fecha_hora_inicial = None
 
-    # Obtener la fecha y hora actual
-    fecha_hora_actual = datetime.now()
+    # Obtiene el horario de Argentina
+    fecha_hora_actual = obtener_fecha_argentina()
 
     # Botón para comenzar la revisión
     if st.button("Comenzar Revisión"):
         # Almacenar la fecha y hora de inicio en la sesión
         st.session_state.fecha_hora_inicial = fecha_hora_actual
-        st.success(f"Revisión iniciada a las {fecha_hora_actual.strftime('%Y-%m-%d %H:%M:%S')} para el coche {coche}")
+        st.success(f"Revisión iniciada a las {fecha_hora_actual.strftime(formato_horario)} para el coche {coche}")
 
     # Mostrar la fecha y hora de inicio solo si ya se inició la revisión
     if st.session_state.fecha_hora_inicial:
-        st.subheader(f"Revisión iniciada a las {st.session_state.fecha_hora_inicial.strftime('%Y-%m-%d %H:%M:%S')} para el coche {coche}")
+        st.subheader(f"Revisión iniciada a las {st.session_state.fecha_hora_inicial.strftime(formato_horario)} para el coche {coche}")
 
         # Definición de posiciones
         posiciones = {
@@ -277,8 +269,8 @@ def main():
         # Botón para guardar la revisión
         if st.button("Guardar Revisión"):
             # Obtener la fecha y hora final de la revisión
-            fecha_hora_final = datetime.now()
-            st.success(f"Revisión finalizada a las {fecha_hora_final.strftime('%Y-%m-%d %H:%M:%S')} para el coche {coche}")
+            fecha_hora_final = obtener_fecha_argentina()
+            st.success(f"Revisión finalizada a las {fecha_hora_final.strftime(formato_horario)} para el coche {coche}")
 
             # Guardar la información en el archivo CSV
             guardar_revision(coche, st.session_state.fecha_hora_inicial, fecha_hora_final, usuario, datos_revision)

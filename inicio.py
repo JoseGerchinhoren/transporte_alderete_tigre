@@ -7,8 +7,6 @@ from ingresaRevisionFosa import main as revisionFosa
 from visualizaRevisionFosa import visualizar_revisiones_en_fosa as visualizaRevisionFosa
 from ingresaUsuarios import ingresa_usuario
 from visualizaUsuarios import main as visualiza_usuarios
-from ingresaNumeroColectivo import main as ingresaNumeroColectivo
-from visualizaNumerosColectivo import main as visualizaNumerosColectivo
 
 # Obtener credenciales
 aws_access_key, aws_secret_key, region_name, bucket_name = cargar_configuracion()
@@ -73,7 +71,7 @@ def main():
         st.sidebar.title("Menú")
 
         if user_rol == "admin":
-            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa", "Nuevo Numero de Colectivo", "Visualizar Numeros de Colectivos","Nuevo Usuario", "Visualiza Usuarios"])
+            selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Inicio", "Nueva Revision en Fosa", "Visualizar Revisiones en Fosa","Nuevo Usuario", "Visualiza Usuarios"])
             if selected_option == "Nuevo Usuario":
                 ingresa_usuario()
             if selected_option == "Visualiza Usuarios":
@@ -82,10 +80,6 @@ def main():
                 revisionFosa()
             if selected_option == "Visualizar Revisiones en Fosa":
                 visualizaRevisionFosa()
-            if selected_option == "Nuevo Numero de Colectivo":
-                ingresaNumeroColectivo()
-            if selected_option == "Visualizar Numeros de Colectivos":
-                visualizaNumerosColectivo()
 
             if selected_option == "Inicio":
                 texto_inicio()
@@ -125,12 +119,8 @@ def texto_inicio():
     st.subheader("""Visualizar Revisiones en Fosa\n * Selecciona el estado deseado en el menú desplegable 'Filtrar por Estado'.\n * Se mostrarán las revisiones filtradas según el estado seleccionado.\n * Si deseas ver detalles de una revisión específica, ingresa el 'idRevision' en el campo correspondiente y presiona Enter.\n * La sección 'Detalles de Revisiones en Fosa' mostrará información detallada sobre la revisión seleccionada.\n * Para editar el estado de una revisión, ingresa el 'idRevision' en el campo 'Ingrese idRevision para editar'.\n * Selecciona el nuevo estado en el menú desplegable 'Nuevo Estado'.\n * Presiona el botón 'Editar Estado' para aplicar los cambios (disponible solo para usuarios administradores antes de las 24:00).\n * La sección 'Detalle de Posiciones' proporciona información detallada sobre cada posición inspeccionada.\n * Utiliza el menú desplegable 'Filtrar por Estado' para mostrar solo los puntos con un estado específico.\n * La información se actualiza dinámicamente según las selecciones realizadas.""")
 
     if user_rol == "admin":
-        st.subheader("""Agregar Número de Colectivo\n * Ingresa el número de colectivo en el campo proporcionado.\n * Haz clic en 'Guardar Número de Colectivo' para almacenar el número ingresado en el archivo 'numerosColectivos.csv' en AWS S3.\n * Se mostrará un mensaje de éxito si la operación se realiza correctamente.\n * Verifica la configuración de las credenciales de AWS si encuentras problemas al guardar el número de colectivo.\n * El archivo CSV se crea si no existe y se actualiza con cada nuevo número ingresado.""")
-        st.subheader("""Visualizar y Eliminar Números de Colectivo\n * Visualiza los números de colectivo registrados.\n * Si no hay números de colectivo registrados, se mostrará un mensaje de advertencia.\n * Los números de colectivo se obtienen desde el archivo 'numerosColectivos.csv' almacenado en AWS S3.\n * Verifica la configuración de las credenciales de AWS si encuentras problemas al obtener los números de colectivo.""")
         st.subheader("""Crear Usuario\n * Ingrese los datos del usuario, incluyendo nombre y apellido, email, contraseña, verificación de contraseña, fecha de nacimiento, DNI, domicilio y rol (empleado o admin).\n * Presione 'Registrar Usuario' para guardar la información.""")
         st.subheader("""Visualizar Usuarios\n * Visualice la información de los usuarios, salvo la contraseña.\n * Edite la información del usuario ingresando el ID correspondiente y modifique los campos necesarios.\n * Presione 'Guardar cambios' para confirmar las modificaciones.""")
-
-
 
 if __name__ == "__main__":
     main()
