@@ -66,10 +66,11 @@ def logout():
 
 def main():
     st.title("T.A. Ciudad de Alderetes - T.A. El Tigre")
-    st.write(f"Bienvenido, {user_nombre_apellido}! - Sistema para Revisiones de Fosa")
 
     if logged_in:
         st.sidebar.title("Menú")
+
+        st.write(f"Bienvenido, {user_nombre_apellido}! - Sistema para Revisiones de Fosa")
 
         if user_rol == "admin":
             selected_option = st.sidebar.selectbox("Seleccione una opción:", ["Nueva Revision en Fosa", "Visualizar Revisiones en Fosa","Nuevo Usuario", "Visualiza Usuarios"])
