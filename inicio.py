@@ -65,7 +65,8 @@ def logout():
     st.success("Sesión cerrada exitosamente")
 
 def main():
-    st.title("Empresa de Transporte")
+    st.title("T.A. Ciudad de Alderetes - T.A. El Tigre")
+    st.write(f"Bienvenido, {user_nombre_apellido}! - Sistema para Revisiones de Fosa")
 
     if logged_in:
         st.sidebar.title("Menú")
@@ -111,7 +112,8 @@ def main():
         st.sidebar.button("Cerrar Sesión", on_click=logout)
 
 def texto_inicio():
-    st.write(f"Bienvenido, {user_nombre_apellido}! - Empresa de Transporte - Sistema para Revisiones")
+    st.write(f"Bienvenido, {user_nombre_apellido}! - Sistema para Revisiones de Fosa")
+    st.write(f"Bienvenido, {user_nombre_apellido}! - T.A. Ciudad de Alderetes y T.A. El Tigre")
     st.header("""Instrucciones \n * **Menú de la Izquierda**: En la interfaz de la aplicación, observarás un menú en el lado izquierdo de la pantalla. \n * **Despliegue del Menú**: Localiza el icono ">"que indica el despliegue del menú. \n * **Selección de Función**: Haz clic en el despliegue del menú y selecciona la opción correspondiente a la función que deseas utilizar. \n * **Interfaz de Función**: Una vez que hayas seleccionado la función, la interfaz cambiará para mostrar los campos o una tabla con la informacion requerida. \n * **Completar una Función**: Rellena los campos o visualiza la informacion que desees. \n * **Cerrar Sesión**: Cuando sea necesario busca el boton para cerrar sesión.
     """)
     st.header("Funciones")
